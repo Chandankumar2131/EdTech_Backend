@@ -1,0 +1,5 @@
+# Node modules (too heavy, don’t push to GitHub)
+node_modules/
+
+# Environment variables (contains secrets like DB_URI, API keys, JWT secret)
+.env
