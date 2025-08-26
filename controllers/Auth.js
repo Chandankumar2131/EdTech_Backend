@@ -3,7 +3,8 @@ const OTP = require('../models/otp');
 const otpGenrator = require('otp-generator');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const profile = require('../models/profile')
+const profile = require('../models/profile');
+const mailSender = require('../utils/mailSender');
 
 
 // send otp
@@ -71,14 +72,15 @@ exports.sendOTP = async (req, res) => {
 // sign up
 
 
-exports.singup = async (req, res) => {
+exports.signup = async (req, res) => {
     try {
         // fetch data from request body
         const {
             firstName,
             lastName,
             email,
-            password, confirmPassword,
+            password,
+            confirmPassword,
             accountType,
             contactNumber,
             otp
@@ -198,54 +200,106 @@ exports.login = async (req, res) => {
             const payload = {
                 email: user.email,
                 id: user._id,
-                role: user.role,
+                accountType: user.accountType,
             }
             const token = jwt.sign(payload, process.env.JWT_SECRET, {
                 expiresIn: "2h"
             });
-            user.token= token;
-            user.password=undefined;
+            user.token = token;
+            user.password = undefined;
 
             // create coocki
-            const option={
-                expires: new Date(Date.now()+3*24*60*60*1000),
-                httpOnly:true,
+            const option = {
+                expires: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+                httpOnly: true,
             }
-            res.cookie('token',token,option).status(200).json({
-                success:true,
+            res.cookie('token', token, option).status(200).json({
+                success: true,
                 token,
                 user,
-                message:"Logged in successfully"
+                message: "Logged in successfully"
             })
         }
-        else{
+        else {
             return res.status(401).json({
-                success:false,
-                message:"password is incorrect"
+                success: false,
+                message: "password is incorrect"
             })
         }
 
 
 
     } catch (error) {
-console.log(error);
-return res.status(500).json({
-    success:false,
-    message:"login failure, please try again"
-});
+        console.log(error);
+        return res.status(500).json({
+            success: false,
+            message: "login failure, please try again"
+        });
 
     }
 }
 
 
-
-
-
-
-
-
-
-
-
-
 // change password
+exports.changePassword = async (req, res) => {
+    try {
+        // get data from user 
+        const { oldPassword, newPassword, confirmPassword } = req.body;
+        // validation
+        if (!oldPassword || !newPassword || !confirmPassword) {
+            return res.status(400).json({
+                success: false,
+                message: "all fileds are required "
+            });
+
+        }
+        if (newPassword !== confirmPassword) {
+            return res.status(400).json({
+                success: false,
+                message: 'newPassword and ConfirmPassword do not match '
+            });
+        }
+
+
+        // Get user from DB(req.user comes from auth middleware after JWT verification)
+        const userId = req.user.id;
+        const user = await User.findById(userId);
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found",
+            });
+        }
+
+
+        // compare old password
+        const isPasswordMatch = await bcrypt.compare(oldPassword, user.password);
+        if (!isPasswordMatch) {
+            return res.status(401).json({
+                success: false,
+                message: "Old password is incorrect",
+            });
+        }
+
+        // Hash new password and update
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        user.password = hashedPassword;
+        await user.save();
+
+
+        await mailSender(user.email, "Password Changed", "Your password was successfully updated.");
+        return res.status(200).json({
+            success: true,
+            message: "Password changed successfully",
+        });
+
+    } catch (error) {
+        console.error("Error in changePassword:", error.message);
+        return res.status(500).json({
+            success: false,
+            message: "Something went wrong while changing password",
+            error: error.message,
+        });
+    }
+}
