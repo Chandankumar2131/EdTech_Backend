@@ -48,7 +48,8 @@ exports.sendOTP = async (req, res) => {
         const otpPayLoad = { email, otp };
 
         // ctreate an entry for OTP
-        const otpBody = await OTP.create(otpPayLoad);
+        const otpBody = await OTP.create(otpPayLoad);   //  here sendVerificationEmail(email, otp) functiomn will be triggered and will 
+        // send mail otp due topre middleware applied on otp schema
         console.log(otpBody);
         res.status(200).json({
             success: true,

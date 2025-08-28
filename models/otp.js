@@ -25,7 +25,7 @@ async function sendVerificationEmail(email, otp) {
     try {
         const mailResponse = await mailSender(email, "Your OTP for Verification", `<p>Your OTP is <b>${otp}</b>. It will expire in 5 minutes.</p>`);
         console.log("mail sent successfully", mailResponse);
-
+        return mailResponse;
 
     } catch (error) {
         console.log("error occured while sending mail", error);
