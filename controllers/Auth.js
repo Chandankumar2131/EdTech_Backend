@@ -7,7 +7,7 @@ const profile = require('../models/profile');
 const mailSender = require('../utils/mailSender');
 
 
-// send otp
+// send otp  
 
 exports.sendOTP = async (req, res) => {
 
