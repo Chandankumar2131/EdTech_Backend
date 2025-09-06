@@ -28,7 +28,8 @@ exports.createSection = async (req, res) => {
         // use populate to replace section / subsectoins both in the updated course details
         return res.status(200).json({
             success: true,
-            message: "section created successfully"
+            message: "section created successfully",
+            updatedCourseDetails,
         })
     } catch (error) {
         return res.status(500).json({
@@ -59,7 +60,7 @@ exports.updateSection = async (req, res) => {
         return res.status(200).json({
             success: true,
             message: "section updated successfully"
-        })
+        });
 
     } catch (error) {
         return res.status(500).json({
