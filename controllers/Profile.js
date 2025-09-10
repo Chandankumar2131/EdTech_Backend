@@ -1,5 +1,47 @@
 const Profile = require('../models/profile');
 const User = require('../models/user');
+const { uploadImageToCloudinary } = require("../utils/imageUploader"); // import your helper
+
+// Update Profile Picture
+exports.updateProfilePic = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    // Check if file is uploaded
+    if (!req.files || !req.files.image) {
+      return res.status(400).json({
+        success: false,
+        message: "No image file uploaded",
+      });
+    }
+
+    const imageFile = req.files.image;
+
+    // Upload to Cloudinary (you can pass folder name)
+    const uploadResult = await uploadImageToCloudinary(imageFile, "profile_pics");
+
+    // Update user record with new image URL
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { image: uploadResult.secure_url },
+      { new: true }
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Profile picture updated successfully",
+      imageUrl: uploadResult.secure_url,
+      user: updatedUser,
+    });
+  } catch (error) {
+    console.error("Error updating profile picture:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Something went wrong while updating profile picture",
+      error: error.message,
+    });
+  }
+};
 
 
 exports.updateProfile = async (req, res) => {
