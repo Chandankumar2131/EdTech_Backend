@@ -10,6 +10,12 @@ exports.createSubsection = async (req, res) => {
         const { sectionId, title, timeDuration, description } = req.body
         // extract file/vedio
         const video = req.files.videoFile;
+
+         console.log("👉 sectionId:", sectionId);
+    console.log("👉 title:", title);
+    console.log("👉 description:", description);
+    console.log("👉 video:", video);
+
         //validation
         if (!sectionId || !title || !timeDuration || !description || !video) {
             return res.status(400).json({
@@ -19,6 +25,7 @@ exports.createSubsection = async (req, res) => {
         }
         // upload video to cloudinary
         const uploadDetails = await uploadImageToCloudinary(video, process.env.FOLDER_NAME);
+        console.log("👉 Cloudinary Response:", uploadDetails);
         //create subsection
         const SubSectionDetails = await SubSection.create({
             title: title,
@@ -26,6 +33,7 @@ exports.createSubsection = async (req, res) => {
             description: description,
             videoUrl: uploadDetails.secure_url,
         })
+         console.log("👉 Subsection Created:", SubSectionDetails);
         // upadte section with this subsection objId 
         const updatedSection = await Section.findByIdAndUpdate({ _id: sectionId },
             {

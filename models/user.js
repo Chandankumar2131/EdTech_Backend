@@ -38,6 +38,13 @@ const userSchema = new mongoose.Schema({
             ref: "Course",
         }
     ],
+    // For Students (courses they are enrolled in)
+    coursesEnrolled: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Course",
+        }
+    ],
     image: {
         type: String,
         required: true,

@@ -126,6 +126,103 @@ exports.showallCourses = async (req, res) => {
     }
 }
 
+
+// buy course
+exports.buyCourse = async (req, res) => {
+    try {
+        const { courseId } = req.body;
+        const userId = req.user.id;
+
+        if (!courseId) {
+            return res.status(400).json({
+                success: false,
+                message: "Course ID is required",
+            });
+        }
+
+        // find course
+        const course = await Course.findById(courseId);
+        if (!course) {
+            return res.status(404).json({
+                success: false,
+                message: "Course not found",
+            });
+        }
+
+        // check if user is already enrolled
+        if (course.studentsEnrolled.includes(userId)) {
+            return res.status(400).json({
+                success: false,
+                message: "User is already enrolled in this course",
+            });
+        }
+
+        // enroll user
+        course.studentsEnrolled.push(userId);
+        await course.save();
+
+        await User.findByIdAndUpdate(userId, {
+            $push: { coursesEnrolled: courseId },
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "User enrolled in course successfully",
+            data: course,
+        });
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            success: false,
+            message: "Something went wrong while enrolling in course",
+            error: error.message,
+        });
+    }
+};
+
+
+// controllers/course.js
+
+exports.getEnrolledCourses = async (req, res) => {
+    try {
+        const userId = req.user.id;
+
+        const userDetails = await User.findById(userId)
+            .populate({
+                path: "coursesEnrolled",
+                populate: {
+                    path: "instructor",
+                    select: "firstName lastName email",
+                },
+            })
+            .exec();
+
+        if (!userDetails) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found",
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Enrolled courses fetched successfully",
+            data: userDetails.coursesEnrolled,
+        });
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            success: false,
+            message: "Something went wrong while fetching enrolled courses",
+            error: error.message,
+        });
+    }
+};
+
+
+
 // getAllCourses Handler function
 exports.getCourseDetails = async (req, res) => {
     try {

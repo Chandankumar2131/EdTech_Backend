@@ -6,17 +6,19 @@ exports.createRating = async (req, res) => {
     try {
         // get user id
         const userId = req.user.id;
+        console.log("👉 User ID:", userId);
 
         // fetch data from request body
         const { rating, review, courseId } = req.body;
+        console.log("👉 Request Body:", { rating, review, courseId });
 
-        //check if user is enrolled or not
-        const courseDetails = await Course.findOne(
-            {
-                _id: courseId,
-                studentsEnrolled: { $eleMatch: { $eq: userId } },
-            }
-        );
+        // check if user is enrolled or not
+        const courseDetails = await Course.findOne({
+            _id: courseId,
+            studentsEnrolled: { $in: [userId] },
+        });
+
+        console.log("👉 Course Details:", courseDetails);
 
         if (!courseDetails) {
             return res.status(400).json({
@@ -25,31 +27,35 @@ exports.createRating = async (req, res) => {
             });
         }
 
-        // check if user is already reviwed or not
-        const alreadyRreadyRevied = await RatingAndReview.findOne({
+        // check if user is already reviewed or not
+        const alreadyReviewed = await RatingAndReview.findOne({
             user: userId,
             course: courseId,
         });
-        if (alreadyRreadyRevied) {
+
+        if (alreadyReviewed) {
             return res.status(403).json({
                 success: false,
                 message: "Course already reviewed by user"
-            })
+            });
         }
 
-        //create rating and review
+        // create rating and review
         const ratingReview = await RatingAndReview.create({
             rating,
             review,
             course: courseId,
             user: userId
-        })
-        // update course with this rating/review
-        await Course.findByIdAndUpdate({ _id: courseId }, {
-            $push: {
-                ratingAndReview: ratingReview._id,
-            }
         });
+
+        console.log("👉 Created Rating:", ratingReview);
+
+        // update course with this rating/review
+        await Course.findByIdAndUpdate(
+            { _id: courseId },
+            { $push: { ratingAndReview: ratingReview._id } }
+        );
+
         // return response
         return res.status(200).json({
             success: true,
@@ -57,13 +63,15 @@ exports.createRating = async (req, res) => {
             ratingReview,
         });
     } catch (error) {
+        console.log("❌ ERROR in createRating:", error.message, error);
         return res.status(500).json({
             success: false,
             message: "faild while creating rating and review",
-
-        })
+            error: error.message
+        });
     }
-} 
+};
+
 
 // getAverageRating
 exports.getAverageRating = async(req,res)=>{

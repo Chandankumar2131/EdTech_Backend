@@ -5,6 +5,8 @@ const {
   createCourse,
   showallCourses,
   getCourseDetails,
+  buyCourse,
+  getEnrolledCourses
 } = require("../controllers/Course");
 
 const {
@@ -39,7 +41,8 @@ const { auth, isInstructor, isStudent, isAdmin } = require("../middlewares/auth"
 router.post("/course/create", auth, isInstructor, createCourse);
 router.get("/course/get-all", showallCourses);
 router.post("/course/details", getCourseDetails);
-
+router.post("/course/buyCourse", auth, isStudent, buyCourse);
+router.get("/course/getEnrolledCourses", auth, isStudent, getEnrolledCourses);
 // =======================
 // CATEGORY
 // =======================
@@ -52,7 +55,7 @@ router.post("/category/details", categoryPageDetails);
 // =======================
 router.post("/section/create", auth, isInstructor, createSection);
 router.put("/section/update", auth, isInstructor, updateSection);
-router.delete("/section/delete", auth, isInstructor, deleteSection);
+router.delete("/section/delete/:courseId/:sectionId", auth, isInstructor, deleteSection);
 
 // =======================
 // SUBSECTION
