@@ -47,9 +47,11 @@ exports.updateProfilePic = async (req, res) => {
 exports.updateProfile = async (req, res) => {
     try {
         // get data
-        const { dateOfBirth = "", gender, about = "", contactNumber } = req.body
-        // getUserId
+        const { firstName = "", lastName = "", dateOfBirth = "", gender, about = "", contactNumber } = req.body;
+
+        // get userId
         const id = req.user.id;
+
         // validate 
         if (!contactNumber || !gender) {
             return res.status(400).json({
@@ -57,18 +59,24 @@ exports.updateProfile = async (req, res) => {
                 message: "please fill all fields"
             });
         }
-        //find Profile
-        const userDetails = await User.findById(id);
-        const profileId = userDetails.additionalDetails
-        const profileDetails = await Profile.findById(profileId);
-        //update profile
 
+        //find User and Profile
+        const userDetails = await User.findById(id);
+        const profileId = userDetails.additionalDetails;
+        const profileDetails = await Profile.findById(profileId);
+
+        //update User model with firstName and lastName
+        userDetails.firstName = firstName;
+        userDetails.lastName = lastName;
+        await userDetails.save();
+
+        //update Profile model
         profileDetails.dateOfBirth = dateOfBirth;
         profileDetails.about = about;
         profileDetails.contactNumber = contactNumber;
         profileDetails.gender = gender;
-
         await profileDetails.save();
+
         // return response
         return res.status(200).json({
             success: true,
@@ -84,6 +92,7 @@ exports.updateProfile = async (req, res) => {
         });
     }
 }
+
 
 // delete account 
 

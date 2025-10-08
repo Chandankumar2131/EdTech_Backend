@@ -8,7 +8,10 @@ exports.auth = async (req, res, next) => {
     try {
         // extract token
 
-        const token = req.cookies.token || req.body.token || req.header("Authorization").replace("Bearer", "");
+      const token =
+  req.cookies.token ||
+  req.body?.token ||
+  req.header("Authorization")?.replace("Bearer ", "").trim();
         // if token is missing then response
         if (!token) {
             return res.status(401).json({
@@ -16,6 +19,13 @@ exports.auth = async (req, res, next) => {
                 message: "token is missing"
             });
         }
+console.log("Headers =>", req.headers);
+
+        // console.log('Token ==> ', token);
+        // console.log('From body -> ', req.body?.token);
+        // console.log('from cookies -> ', req.cookies?.token);
+        // console.log('from headers -> ', req.header('Authorization')?.replace('Bearer ', ''));
+
         // varify token
         try {
             const decode = jwt.verify(token, process.env.JWT_SECRET);
