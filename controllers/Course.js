@@ -188,6 +188,8 @@ exports.getEnrolledCourses = async (req, res) => {
     try {
         const userId = req.user.id;
 
+        console.log("fetched api of user enrolled courses from the backend");
+        
         const userDetails = await User.findById(userId)
             .populate({
                 path: "coursesEnrolled",

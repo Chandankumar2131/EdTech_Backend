@@ -42,7 +42,7 @@ router.post("/course/create", auth, isInstructor, createCourse);
 router.get("/course/get-all", showallCourses);
 router.post("/course/details", getCourseDetails);
 router.post("/course/buyCourse", auth, isStudent, buyCourse);
-router.get("/course/getEnrolledCourses", auth, isStudent, getEnrolledCourses);
+router.get("/getEnrolledCourses", auth, isStudent, getEnrolledCourses);
 // =======================
 // CATEGORY
 // =======================
