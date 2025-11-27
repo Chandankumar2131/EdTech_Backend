@@ -96,6 +96,109 @@ exports.createCourse = async (req, res) => {
     }
 }
 
+// ================ Edit Course Details ================
+exports.editCourse = async (req, res) => {
+  try {
+    const { courseId, ...body } = req.body;
+
+    if (!courseId) {
+      return res.status(400).json({ success: false, message: "Course ID is required" });
+    }
+
+    const course = await Course.findById(courseId);
+
+    if (!course) {
+      return res.status(404).json({ success: false, message: "Course not found" });
+    }
+
+    // If thumbnail image is provided, upload and update
+    if (req.files && req.files.thumbnailImage) {
+      const thumbnailImage = await uploadImageToCloudinary(
+        req.files.thumbnailImage,
+        process.env.FOLDER_NAME
+      );
+      course.thumbnail = thumbnailImage.secure_url;
+    }
+
+    // Convert `body` to plain object if it's FormData or stringified JSON
+    const updates = {};
+    for (const key in body) {
+      if (Object.prototype.hasOwnProperty.call(body, key)) {
+        try {
+          updates[key] = JSON.parse(body[key]); // parse JSON if needed
+        } catch (err) {
+          updates[key] = body[key]; // leave as string if not JSON
+        }
+      }
+    }
+
+    // Update course fields
+    for (const key in updates) {
+      if (updates.hasOwnProperty(key)) {
+        course[key] = updates[key];
+      }
+    }
+
+    course.updatedAt = Date.now();
+
+    await course.save();
+
+    const updatedCourse = await Course.findById(courseId)
+      .populate({
+        path: "instructor",
+        populate: { path: "additionalDetails" },
+      })
+      .populate("category")
+      .populate("ratingAndReview")
+      .populate({
+        path: "courseContent",
+        populate: { path: "subSection" },
+      })
+      .exec();
+
+    return res.status(200).json({
+      success: true,
+      message: "Course updated successfully",
+      data: updatedCourse,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Error while updating course",
+      error: error.message,
+    });
+  }
+};
+
+
+
+// ================ Get a list of Course for a given Instructor ================
+exports.getInstructorCourses = async (req, res) => {
+    try {
+        // Get the instructor ID from the authenticated user or request body
+        const instructorId = req.user.id
+
+        // Find all courses belonging to the instructor
+        const instructorCourses = await Course.find({ instructor: instructorId, }).sort({ createdAt: -1 })
+
+
+        // Return the instructor's courses
+        res.status(200).json({
+            success: true,
+            data: instructorCourses,
+            // totalDurationInSeconds:totalDurationInSeconds,
+            message: 'Courses made by Instructor fetched successfully'
+        })
+    } catch (error) {
+        console.error(error)
+        res.status(500).json({
+            success: false,
+            message: "Failed to retrieve instructor courses",
+            error: error.message,
+        })
+    }
+}
 
 
 

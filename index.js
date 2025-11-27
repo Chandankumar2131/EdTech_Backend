@@ -25,7 +25,7 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(
   cors({
-    origin: "http://localhost:5173", // ✅ fixed
+    origin:[ "http://localhost:5173", "https://ed-tech-frontend-sigma-seven.vercel.app"],
     credentials: true,
   })
 );

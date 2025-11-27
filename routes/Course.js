@@ -3,6 +3,7 @@ const router = express.Router();
 
 const {
   createCourse,
+  editCourse,
   showallCourses,
   getCourseDetails,
   buyCourse,
@@ -39,6 +40,7 @@ const { auth, isInstructor, isStudent, isAdmin } = require("../middlewares/auth"
 // COURSE
 // =======================
 router.post("/course/create", auth, isInstructor, createCourse);
+router.post("/course/edit", auth, isInstructor, editCourse);
 router.get("/course/get-all", showallCourses);
 router.post("/course/details", getCourseDetails);
 router.post("/course/buyCourse", auth, isStudent, buyCourse);

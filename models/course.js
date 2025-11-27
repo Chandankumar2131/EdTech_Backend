@@ -53,7 +53,7 @@ instructions:{
 },
 status:{
     type:String,
-    enum:["Draft","published"],
+    enum:["Draft","Published"],
 },
 });
 
