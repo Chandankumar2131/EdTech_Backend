@@ -2,7 +2,7 @@ const User = require('../models/user');
 const mailSender = require('../utils/mailSender');
 const crypto = require("crypto");
 const bcrypt = require('bcrypt');
-
+const { passwordResetTemplate } = require("../mail/Varification/passwordResetTemplate");
 
 // resetPasswordToken
 
@@ -34,13 +34,13 @@ exports.resetPasswordToken = async (req, res) => {
         );
 
         // create url
-        const url = `http://localhost:5173/update-password/${token}`
+        const url = `https://edtech-backend-8afs.onrender.com/update-password/${token}`
 
         // send mail contaiining the url
 
         await mailSender(email,
             "password Reset link",
-            `password reset link: ${url}`
+            passwordResetTemplate(user.firstName, url)
         );
 
         return res.json({

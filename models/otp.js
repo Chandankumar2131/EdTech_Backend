@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const mailSender = require('../utils/mailSender');
-
+const otpTemplate = require("../mail/Varification/emailVerificationTemplate"); // your fancy template
 const otpSchema = new mongoose.Schema({
 
     email: {
@@ -21,18 +21,24 @@ const otpSchema = new mongoose.Schema({
 
 })
 
-async function sendVerificationEmail(email, otp) {
+
+
+async function sendVerificationEmail(email, otp, name = "User") {
     try {
-        const mailResponse = await mailSender(email, "Your OTP for Verification", `<p>Your OTP is <b>${otp}</b>. It will expire in 5 minutes.</p>`);
+        const htmlBody = otpTemplate(otp, name); // generate full HTML
+        const mailResponse = await mailSender(
+            email,
+            "Your OTP for Verification",
+            htmlBody
+        );
         console.log("mail sent successfully", mailResponse);
         return mailResponse;
 
     } catch (error) {
         console.log("error occured while sending mail", error);
-
-
     }
 }
+
 
 otpSchema.pre("save", async function (next) {
     await sendVerificationEmail(this.email, this.otp);
