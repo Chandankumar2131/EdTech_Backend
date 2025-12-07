@@ -55,6 +55,13 @@ status:{
     type:String,
     enum:["Draft","Published"],
 },
+createdAt: {
+        type: Date,
+    }
+    ,
+    updatedAt: {
+        type: Date,
+    }
 });
 
 module.exports=mongoose.model("Course",courseSchema);

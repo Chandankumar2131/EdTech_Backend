@@ -7,13 +7,16 @@ const {
   showallCourses,
   getCourseDetails,
   buyCourse,
-  getEnrolledCourses
+  getEnrolledCourses,
+  getInstructorCourses,
+  deleteCourse,
+  getFullCourseDetails
 } = require("../controllers/Course");
 
 const {
   createCategory,
   showAllCategory,
-  categoryPageDetails,
+  getCategoryPageDetails,
 } = require("../controllers/Category");
 
 const {
@@ -42,15 +45,18 @@ const { auth, isInstructor, isStudent, isAdmin } = require("../middlewares/auth"
 router.post("/course/create", auth, isInstructor, createCourse);
 router.post("/course/edit", auth, isInstructor, editCourse);
 router.get("/course/get-all", showallCourses);
+router.get("/getInstructorCourses", auth, isInstructor, getInstructorCourses)
 router.post("/course/details", getCourseDetails);
 router.post("/course/buyCourse", auth, isStudent, buyCourse);
 router.get("/getEnrolledCourses", auth, isStudent, getEnrolledCourses);
+router.delete("/deleteCourse", auth, isInstructor, deleteCourse)
+router.post('/getFullCourseDetails', auth, getFullCourseDetails);
 // =======================
 // CATEGORY
 // =======================
 router.post("/category/create", auth, isAdmin, createCategory);
 router.get("/category/get-all", showAllCategory);
-router.post("/category/details", categoryPageDetails);
+router.post("/category/getCategoryPageDetails", getCategoryPageDetails);
 
 // =======================
 // SECTION

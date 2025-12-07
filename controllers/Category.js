@@ -48,13 +48,20 @@ exports.showAllCategory = async (req, res) => {
 };
 
 // Category page details
-exports.categoryPageDetails = async (req, res) => {
+exports.getCategoryPageDetails = async (req, res) => {
   try {
     const { categoryId } = req.body;
 
-    // Find the selected category with its courses
+    function getRandomInt(max) {
+      return Math.floor(Math.random() * max);
+    }
+
     const selectedCategory = await Category.findById(categoryId)
-      .populate("courses")
+      .populate({
+        path: "courses",
+        match: { status: "Published" },
+        populate: "ratingAndReview",
+      })
       .exec();
 
     if (!selectedCategory) {
@@ -65,43 +72,59 @@ exports.categoryPageDetails = async (req, res) => {
     }
 
     if (selectedCategory.courses.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: "No course found for the selected category",
+      return res.status(200).json({
+        success: true,
+        message: "No courses found in this category",
+        data: {
+          selectedCategory,
+          differentCategory: null,
+          mostSellingCourses: [],
+        },
       });
     }
 
-    const selectedCourse = selectedCategory.courses;
-
-    // Get courses for other categories
     const categoriesExceptSelected = await Category.find({
       _id: { $ne: categoryId },
-    }).populate("courses");
+    });
 
-    let differentCourses = [];
-    for (const category of categoriesExceptSelected) {
-      differentCourses.push(...category.courses);
+    let differentCategory = null;
+
+    if (categoriesExceptSelected.length > 0) {
+      differentCategory = await Category.findById(
+        categoriesExceptSelected[getRandomInt(categoriesExceptSelected.length)]
+          ._id
+      )
+        .populate({
+          path: "courses",
+          match: { status: "Published" },
+          populate: "ratingAndReview",
+        })
+        .exec();
     }
 
-    // Get top selling courses (based on studentsEnrolled.length)
-    const allCategories = await Category.find().populate("courses");
-    const allCourses = allCategories.flatMap((category) => category.courses);
+    const allCategories = await Category.find()
+      .populate({
+        path: "courses",
+        match: { status: "Published" },
+        populate: "ratingAndReview",
+      })
+      .exec();
 
-    const mostSellingCourse = allCourses
-      .sort(
-        (a, b) =>
-          b.studentsEnrolled.length - a.studentsEnrolled.length // compare enrolled students
-      )
+    const allCourses = allCategories.flatMap((cat) => cat.courses);
+
+    const mostSellingCourses = allCourses
+      .sort((a, b) => b.sold - a.sold)
       .slice(0, 10);
 
-    return res.status(200).json({
+    res.status(200).json({
       success: true,
-      selectedCourse,
-      differentCourses,
-      mostSellingCourse,
+      data: {
+        selectedCategory,
+        differentCategory,
+        mostSellingCourses,
+      },
     });
   } catch (error) {
-    console.error("Error in categoryPageDetails:", error);
     return res.status(500).json({
       success: false,
       message: "Internal server error",
