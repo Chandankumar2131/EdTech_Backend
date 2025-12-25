@@ -232,19 +232,19 @@ exports.getFullCourseDetails = async (req, res) => {
             .populate("category")
             .populate("ratingAndReview")
             .populate({
-                path: "courseContent",
+                path: "courseContent",     
                 populate: {
                     path: "subSection",
                 },
             })
             .exec()
 
-        // let courseProgressCount = await CourseProgress.findOne({
-        //     courseID: courseId,
-        //     userId: userId,
-        // })
+        let courseProgressCount = await CourseProgress.findOne({
+            courseID: courseId,
+            userId: userId,
+        })
 
-        //   console.log("courseProgressCount : ", courseProgressCount)
+          console.log("courseProgressCount : ", courseProgressCount)
 
         if (!courseDetails) {
             return res.status(404).json({
@@ -253,30 +253,30 @@ exports.getFullCourseDetails = async (req, res) => {
             })
         }
 
-        // if (courseDetails.status === "Draft") {
-        //   return res.status(403).json({
-        //     success: false,
-        //     message: `Accessing a draft course is forbidden`,
-        //   });
-        // }
+        if (courseDetails.status === "Draft") {
+          return res.status(403).json({
+            success: false,
+            message: `Accessing a draft course is forbidden`,
+          });
+        }
 
         //   count total time duration of course
-        // let totalDurationInSeconds = 0
-        // courseDetails.courseContent.forEach((content) => {
-        //     content.subSection.forEach((subSection) => {
-        //         const timeDurationInSeconds = parseInt(subSection.timeDuration)
-        //         totalDurationInSeconds += timeDurationInSeconds
-        //     })
-        // })
+        let totalDurationInSeconds = 0
+        courseDetails.courseContent.forEach((content) => {
+            content.subSection.forEach((subSection) => {
+                const timeDurationInSeconds = parseInt(subSection.timeDuration)
+                totalDurationInSeconds += timeDurationInSeconds
+            })
+        })
 
-        // const totalDuration = convertSecondsToDuration(totalDurationInSeconds)
+        const totalDuration = convertSecondsToDuration(totalDurationInSeconds)
 
         return res.status(200).json({
             success: true,
             data: {
                 courseDetails,
-                // totalDuration,
-                // completedVideos: courseProgressCount?.completedVideos ? courseProgressCount?.completedVideos : [],
+                totalDuration,
+                completedVideos: courseProgressCount?.completedVideos ? courseProgressCount?.completedVideos : [],
             },
         })
     } catch (error) {
@@ -378,14 +378,22 @@ exports.getEnrolledCourses = async (req, res) => {
         console.log("fetched api of user enrolled courses from the backend");
         
         const userDetails = await User.findById(userId)
-            .populate({
-                path: "coursesEnrolled",
-                populate: {
-                    path: "instructor",
-                    select: "firstName lastName email",
-                },
-            })
-            .exec();
+  .populate({
+    path: "coursesEnrolled",
+    populate: [
+      {
+        path: "instructor", 
+        select: "firstName lastName email",
+      },
+      {
+        path: "courseContent",
+        populate: {
+          path: "subSection",
+        },
+      },
+    ],
+  })
+  .exec();
 
         if (!userDetails) {
             return res.status(404).json({

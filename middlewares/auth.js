@@ -8,10 +8,10 @@ exports.auth = async (req, res, next) => {
     try {
         // extract token
 
-      const token =
-  req.cookies.token ||
-  req.body?.token ||
-  req.header("Authorization")?.replace("Bearer ", "").trim();
+        const token =
+            req.cookies.token ||
+            req.body?.token ||
+            req.header("Authorization")?.replace("Bearer ", "").trim();
         // if token is missing then response
         if (!token) {
             return res.status(401).json({
@@ -19,7 +19,7 @@ exports.auth = async (req, res, next) => {
                 message: "token is missing"
             });
         }
-console.log("Headers =>", req.headers);
+        console.log("Headers =>", req.headers);
 
         // console.log('Token ==> ', token);
         // console.log('From body -> ', req.body?.token);

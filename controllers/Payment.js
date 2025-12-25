@@ -132,7 +132,7 @@ const enrollStudents = async (courses, userId, res) => {
 
             // Initialize course preogres with 0 percent
             const courseProgress = await CourseProgress.create({
-                courseID: courseId,
+                courseId: courseId,
                 userId: userId,
                 completedVideos: [],
             })
@@ -142,7 +142,7 @@ const enrollStudents = async (courses, userId, res) => {
                 userId,
                 {
                     $push: {
-                        courses: courseId,
+                        coursesEnrolled: courseId,
                         courseProgress: courseProgress._id,
                     },
                 },
@@ -168,7 +168,7 @@ const enrollStudents = async (courses, userId, res) => {
 }
 
 
-
+  
 exports.sendPaymentSuccessEmail = async (req, res) => {
     const { orderId, paymentId, amount } = req.body;
 

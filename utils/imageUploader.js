@@ -9,14 +9,14 @@ exports.uploadImageToCloudinary = async (file, folder, height, quality) => {
     if (file.mimetype && file.mimetype.startsWith("video")) {
         options.resource_type = "video";
 
-        // ✅ Wrap upload_large inside a Promise
+        //Wrap upload_large inside a Promise
         return new Promise((resolve, reject) => {
             cloudinary.v2.uploader.upload_large(
                 file.tempFilePath,
                 options,
                 (error, result) => {
                     if (error) {
-                        console.error("❌ Cloudinary upload_large error:", error);
+                        console.error(" Cloudinary upload_large error:", error);
                         reject(error);
                     } else {
                         resolve(result);
